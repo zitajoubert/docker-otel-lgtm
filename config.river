@@ -1,0 +1,41 @@
+// 1. Accept OTLP data from the application
+otelcol.receiver.otlp "default" {
+  grpc { endpoint = "0.0.0.0:4317" }
+  http { endpoint = "0.0.0.0:4318" }
+
+  output {
+    metrics = [otelcol.exporter.prometheus.to_mimir.input]
+    logs    = [otelcol.exporter.loki.to_loki.input]
+    traces  = [otelcol.exporter.otlp.to_tempo.input]
+  }
+}
+
+// 2. Export Metrics to Mimir (Port 9009)
+otelcol.exporter.prometheus "to_mimir" {
+  forward_to = [prometheus.remote_write.mimir.receiver]
+}
+
+prometheus.remote_write "mimir" {
+  endpoint {
+    url = "http://lgtm:9009/api/v1/push"
+  }
+}
+
+// 3. Export Logs to Loki (Port 3100)
+otelcol.exporter.loki "to_loki" {
+  forward_to = [loki.write.local.receiver]
+}
+
+loki.write "local" {
+  endpoint {
+    url = "http://lgtm:3100/loki/api/v1/push"
+  }
+}
+
+// 4. Export Traces to Tempo (Port 4317 on the lgtm container)
+otelcol.exporter.otlp "to_tempo" {
+  client {
+    endpoint = "lgtm:4317"
+    tls { insecure = true }
+  }
+}

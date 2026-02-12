@@ -30,6 +30,10 @@ loki.write "local" {
   endpoint {
     url = "http://lgtm:3100/loki/api/v1/push"
   }
+  // This forces the label "job=fastapi-app" onto every log
+  external_labels = {
+    job = "fastapi-app",
+  }
 }
 
 // 4. Export Traces to Tempo (Port 4317 on the lgtm container)
@@ -37,19 +41,5 @@ otelcol.exporter.otlp "to_tempo" {
   client {
     endpoint = "lgtm:4317"
     tls { insecure = true }
-  }
-}
-
-otelcol.exporter.loki "to_loki" {
-  forward_to = [loki.write.local.receiver]
-}
-
-loki.write "local" {
-  endpoint {
-    url = "http://lgtm:3100/loki/api/v1/push"
-  }
-  # ADD THIS BLOCK to force a label onto your logs
-  external_labels = {
-    job = "fastapi-app",
   }
 }

@@ -4,45 +4,39 @@ otelcol.receiver.otlp "default" {
   http { endpoint = "0.0.0.0:4318" }
 
   output {
-    metrics = [otelcol.exporter.prometheus.to_mimir.input]
-    // Send logs to BOTH Loki and the Terminal
-    logs    = [otelcol.exporter.loki.to_loki.input, otelcol.exporter.logging.console.input]
+    // metrics = [otelcol.exporter.prometheus.to_mimir.input] // Commented out to stop error spam
+    logs    = [otelcol.exporter.loki.to_loki.input, otelcol.exporter.debug.console.input]
     traces  = [otelcol.exporter.otlp.to_tempo.input]
   }
 }
 
-// 2. The Logging Exporter (Stable - Prints to Terminal)
-otelcol.exporter.logging "console" {
+// 2. The Debug Exporter (Now enabled via Docker flag)
+otelcol.exporter.debug "console" {
   verbosity = "detailed"
 }
 
-// 3. Export Metrics to Mimir
-otelcol.exporter.prometheus "to_mimir" {
-  forward_to = [prometheus.remote_write.mimir.receiver]
-}
-prometheus.remote_write "mimir" {
-  endpoint { url = "http://lgtm:9009/api/v1/push" }
-}
-
-// 4. Export Logs to Loki
+// 3. Export Logs to Loki
 otelcol.exporter.loki "to_loki" {
   forward_to = [loki.write.local.receiver]
 }
+
 loki.write "local" {
   endpoint {
     url = "http://lgtm:3100/loki/api/v1/push"
-    // Keep tenant_id commented out unless you are sure you need it
-    // tenant_id = "fake" 
   }
   external_labels = {
     job = "fastapi-app",
   }
 }
 
-// 5. Export Traces to Tempo
+// 4. Export Traces to Tempo
 otelcol.exporter.otlp "to_tempo" {
   client {
     endpoint = "lgtm:4317"
     tls { insecure = true }
   }
 }
+
+// Metrics components removed/commented to clean up logs
+// otelcol.exporter.prometheus "to_mimir" ...
+// prometheus.remote_write "mimir" ...

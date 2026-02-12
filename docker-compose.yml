@@ -45,6 +45,8 @@ services:
       - OTEL_LOGS_EXPORTER=otlp
       - OTEL_METRICS_EXPORTER=otlp
       - OTEL_TRACES_EXPORTER=otlp
+      - OTEL_LOG_LEVEL=debug
+      - OTEL_PYTHON_LOG_LEVEL=debug
       
     command: opentelemetry-instrument uvicorn main:app --host 0.0.0.0 --port 8000
     ports:

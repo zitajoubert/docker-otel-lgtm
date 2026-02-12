@@ -29,6 +29,7 @@ otelcol.exporter.loki "to_loki" {
 loki.write "local" {
   endpoint {
     url = "http://lgtm:3100/loki/api/v1/push"
+    tenant_id = "fake"
   }
   // This forces the label "job=fastapi-app" onto every log
   external_labels = {

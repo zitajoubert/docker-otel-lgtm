@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS dice_history (
+    id SERIAL PRIMARY KEY,
+    roll_value INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

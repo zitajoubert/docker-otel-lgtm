@@ -25,7 +25,11 @@ services:
   db:
     image: postgres:15
     environment:
-      POSTGRES_PASSWORD: password
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=demo
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - lgtm-demo
 

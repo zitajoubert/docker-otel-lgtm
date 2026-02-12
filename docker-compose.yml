@@ -17,6 +17,7 @@ services:
     command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.river
     ports:
       - "12345:12345"
+      - "12346:4317"
     networks:
       - lgtm-demo
 
@@ -36,8 +37,9 @@ services:
   app:
     build: ./fastapi
     environment:
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4318
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4317
       - OTEL_SERVICE_NAME=fastapi-app
+      - OTEL_RESOURCE_ATTRIBUTES=deployment.environment=demo
       - OTEL_PYTHON_LOG_CORRELATION=true
       - OTEL_LOGS_EXPORTER=otlp
     ports:

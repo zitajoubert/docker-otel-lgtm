@@ -4,7 +4,7 @@ FROM python:3.10-slim
 WORKDIR /app
 
 # Install dependencies for FastAPI and Postgres 
-RUN pip install requirements.txt
+RUN pip install -r requirements.txt
 # Install the auto-instrumentation components 
 RUN opentelemetry-bootstrap -a install
 

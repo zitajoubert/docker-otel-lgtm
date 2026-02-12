@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 import psycopg2
 import os
+import random
 
 app = FastAPI()
 
@@ -16,9 +17,10 @@ def get_db_connection():
 def roll_dice():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("INSERT INTO dice_history (roll_value) VALUES (DEFAULT) RETURNING id;")
+    val = random.randint(1, 6)
+    cur.execute("INSERT INTO dice_history (roll_value) VALUES (%s) RETURNING id;", (val,))
     new_id = cur.fetchone()[0]
     conn.commit()
     cur.close()
     conn.close()
-    return {"message": "Roll recorded!", "id": new_id}
+    return {"status": "success", "roll": val, "db_id": new_id}

@@ -3,8 +3,9 @@ services:
   lgtm:
     image: grafana/otel-lgtm:latest
     ports:
-      - "3000:3000"   # Grafana Web UI
-      - "12345:12345" # Alloy UI (if running inside this container)
+      - "3000:3000"      
+      - "4317:4317"     
+      - "4318:4318"
     networks:
       - lgtm-demo
 
@@ -40,6 +41,8 @@ services:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4318
       - OTEL_SERVICE_NAME=fastapi-app
       - OTEL_PYTHON_LOG_CORRELATION=true
+    ports:
+    - "8000:8000"
     depends_on:
       - alloy
       - db

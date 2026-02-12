@@ -4,7 +4,7 @@ otelcol.receiver.otlp "default" {
   http { endpoint = "0.0.0.0:4318" }
 
   output {
-    // metrics = [otelcol.exporter.prometheus.to_mimir.input] // Commented out to stop error spam
+    metrics = [otelcol.exporter.prometheus.to_mimir.input] 
     logs    = [otelcol.exporter.loki.to_loki.input, otelcol.exporter.debug.console.input]
     traces  = [otelcol.exporter.otlp.to_tempo.input]
   }

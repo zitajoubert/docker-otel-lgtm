@@ -2,6 +2,10 @@ from fastapi import FastAPI
 import psycopg2
 import os
 import random
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -23,4 +27,7 @@ def roll_dice():
     conn.commit()
     cur.close()
     conn.close()
+
+    logger.info(f"Dice roll {val} saved to database with ID {new_id}")
+    
     return {"status": "success", "roll": val, "db_id": new_id}

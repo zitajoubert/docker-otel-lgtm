@@ -41,9 +41,10 @@ services:
       - OTEL_SERVICE_NAME=fastapi-app
       - OTEL_RESOURCE_ATTRIBUTES=deployment.environment=demo
       - OTEL_PYTHON_LOG_CORRELATION=true
-      - OTEL_LOGS_EXPORTER=otlp
-      - OTEL_METRICS_EXPORTER=otlp
-      - OTEL_TRACES_EXPORTER=otlp
+      - OTEL_LOGS_EXPORTER=console
+      - OTEL_METRICS_EXPORTER=console
+      - OTEL_TRACES_EXPORTER=console
+    command: opentelemetry-instrument uvicorn main:app --host 0.0.0.0 --port 8000
     ports:
     - "8000:8000"
     depends_on:

@@ -3,6 +3,7 @@ import psycopg2
 import os
 import random
 import logging
+from typing import Optional
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

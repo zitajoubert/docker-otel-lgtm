@@ -4,36 +4,42 @@ import logging
 import psycopg2
 from typing import Optional
 from fastapi import FastAPI
+
+# OpenTelemetry Core Imports
+from opentelemetry import trace
+from opentelemetry.sdk.resources import Resource
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.psycopg2 import Psycopg2Instrumentor
 
-# OpenTelemetry Imports
-from opentelemetry import trace
-from opentelemetry.sdk.resources import Resource
+# OpenTelemetry Tracing Setup
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+
+# OpenTelemetry Logging Setup
 from opentelemetry._logs import set_logger_provider
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
 
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-
-#OTLP Logging Provider
+# 1. Define Common Resource (Used for both Logs and Traces)
+# The "service.name" is critical for the Grafana waterfall visualization.
 resource = Resource.create({"service.name": "fastapi-app"})
+
+# 2. Initialize TRACING (Fixes the "No data in waterfall" issue)
 trace_provider = TracerProvider(resource=resource)
 trace.set_tracer_provider(trace_provider)
-logger_provider = LoggerProvider(resource=resource)
-set_logger_provider(logger_provider)
-
-#configure the Exporter to point to Alloy
-otlp_log_exporter = OTLPLogExporter(endpoint="http://alloy:4317", insecure=True)
-logger_provider.add_log_record_processor(BatchLogRecordProcessor(otlp_log_exporter))
-
+# Sends traces to Alloy on port 4317
 otlp_trace_exporter = OTLPSpanExporter(endpoint="http://alloy:4317", insecure=True)
 trace_provider.add_span_processor(BatchSpanProcessor(otlp_trace_exporter))
 
-#Trace Correlation Filter
+# 3. Initialize LOGGING
+logger_provider = LoggerProvider(resource=resource)
+set_logger_provider(logger_provider)
+otlp_log_exporter = OTLPLogExporter(endpoint="http://alloy:4317", insecure=True)
+logger_provider.add_log_record_processor(BatchLogRecordProcessor(otlp_log_exporter))
+
+# Trace Correlation Filter for local stdout logs
 class TraceIdFilter(logging.Filter):
     def filter(self, record):
         span = trace.get_current_span()
@@ -45,7 +51,7 @@ class TraceIdFilter(logging.Filter):
             record.span_id = '0' * 16
         return True
 
-# standard Logging
+# Standard Logging Configuration
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s %(levelname)s [trace_id=%(trace_id)s] %(message)s'
@@ -53,14 +59,16 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 logger.addFilter(TraceIdFilter())
 
-# Attach OTLP Handler so logs go to Alloy
+# Attach OTLP Handler so logs go to Alloy/Loki
 handler = LoggingHandler(level=logging.INFO, logger_provider=logger_provider)
 logger.addHandler(handler)
 
+# 4. Initialize FastAPI and Instrumentation
 app = FastAPI()
-# 1. Instrument FastAPI (Starts the trace at the HTTP request)
+
+# Auto-instruments HTTP requests (starts the trace)
 FastAPIInstrumentor.instrument_app(app)
-# 2. Instrument Psycopg2 (Adds the SQL execution to the same trace)
+# Auto-instruments Postgres queries (adds SQL as a child span)
 Psycopg2Instrumentor().instrument()
 
 def get_db_connection():
@@ -78,11 +86,12 @@ def roll_dice(roll: Optional[int] = None):
     
     if roll is not None:
         val = roll
-        logger.info(f"Received forced roll from traffic script: {val}")
+        logger.info(f"Received forced roll: {val}")
     else:
         val = random.randint(1, 6)
-        logger.info(f"Generating random roll internally: {val}")
+        logger.info(f"Generating random roll: {val}")
         
+    # This SQL execution will now appear in your Trace waterfall
     cur.execute("INSERT INTO dice_history (roll_value) VALUES (%s) RETURNING id;", (val,))
     new_id = cur.fetchone()[0]
     conn.commit()

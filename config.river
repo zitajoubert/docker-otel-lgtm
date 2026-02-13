@@ -54,3 +54,8 @@ prometheus.scrape "postgres" {
   targets = [{"__address__" = "postgres-exporter:9187"}]
   forward_to = [prometheus.remote_write.local.receiver]
 }
+prometheus.remote_write "local" {
+  endpoint {
+    url = "http://lgtm:9090/api/v1/write"
+  }
+}

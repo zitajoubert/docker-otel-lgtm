@@ -1,3 +1,4 @@
+// 1. Accept OTLP data from the application
 otelcol.receiver.otlp "default" {
   grpc { endpoint = "0.0.0.0:4317" }
   http { endpoint = "0.0.0.0:4318" }
@@ -5,11 +6,24 @@ otelcol.receiver.otlp "default" {
   output {
     metrics = [otelcol.exporter.debug.console.input]
     traces  = [otelcol.exporter.otlp.to_tempo.input]
-    // Send logs to the correlation processor, NOT directly to the exporter
     logs    = [loki.process.trace_correlation.receiver] 
   }
 }
 
+// 2. The Debug Exporter (This fixes the "metrics" error)
+otelcol.exporter.debug "console" {
+  verbosity = "detailed"
+}
+
+// 3. The Tempo Exporter (This fixes the "traces" error)
+otelcol.exporter.otlp "to_tempo" {
+  client {
+    endpoint = "lgtm:4317"
+    tls { insecure = true }
+  }
+}
+
+// 4. Log Processing & Correlation
 loki.process "trace_correlation" {
   stage.regex {
     expression = "trace_id=(?P<trace_id>\\w+)"
@@ -22,6 +36,7 @@ loki.process "trace_correlation" {
   forward_to = [loki.write.local.receiver]
 }
 
+// 5. Final destination for Logs
 loki.write "local" {
   endpoint {
     url = "http://lgtm:3100/loki/api/v1/push"

@@ -50,3 +50,7 @@ loki.write "local" {
 otelcol.exporter.debug "console" {
   verbosity = "detailed"
 }
+prometheus.scrape "postgres" {
+  targets = [{"__address__" = "postgres-exporter:9187"}]
+  forward_to = [prometheus.remote_write.local.receiver]
+}

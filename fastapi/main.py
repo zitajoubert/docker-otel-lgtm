@@ -4,6 +4,7 @@ import logging
 import psycopg2
 from typing import Optional
 from fastapi import FastAPI
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 # OpenTelemetry Imports
 from opentelemetry import trace

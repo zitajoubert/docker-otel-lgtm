@@ -1,34 +1,15 @@
-// 1. Accept OTLP data from the application
 otelcol.receiver.otlp "default" {
   grpc { endpoint = "0.0.0.0:4317" }
   http { endpoint = "0.0.0.0:4318" }
 
   output {
     metrics = [otelcol.exporter.debug.console.input]
-    logs    = [otelcol.exporter.loki.to_loki.input, otelcol.exporter.debug.console.input]
     traces  = [otelcol.exporter.otlp.to_tempo.input]
+    // Send logs to the correlation processor, NOT directly to the exporter
+    logs    = [loki.process.trace_correlation.receiver] 
   }
 }
 
-// 2. The Debug Exporter (Now enabled via Docker flag)
-otelcol.exporter.debug "console" {
-  verbosity = "detailed"
-}
-
-// 3. Export Logs to Loki
-otelcol.exporter.loki "to_loki" {
-  forward_to = [loki.write.local.receiver]
-}
-
-loki.write "local" {
-  endpoint {
-    url = "http://lgtm:3100/loki/api/v1/push"
-  }
-  external_labels = {
-    job = "fastapi-app",
-  }
-}
-// processing stage to extract the traceID from the text
 loki.process "trace_correlation" {
   stage.regex {
     expression = "trace_id=(?P<trace_id>\\w+)"
@@ -40,21 +21,12 @@ loki.process "trace_correlation" {
   }
   forward_to = [loki.write.local.receiver]
 }
-// Update docker source to point to the process stage
-loki.source.docker "default" {
-  host       = "unix:///var/run/docker.sock"
-  targets    = discovery.relabel.container_logs.output
-  forward_to = [loki.process.trace_correlation.receiver] // Connects to the correlation stage
-}
 
-// 4. Export Traces to Tempo
-otelcol.exporter.otlp "to_tempo" {
-  client {
-    endpoint = "lgtm:4317"
-    tls { insecure = true }
+loki.write "local" {
+  endpoint {
+    url = "http://lgtm:3100/loki/api/v1/push"
+  }
+  external_labels = {
+    job = "fastapi-app",
   }
 }
-
-// Metrics components removed/commented to clean up logs
-// otelcol.exporter.prometheus "to_mimir" ...
-// prometheus.remote_write "mimir" ...

@@ -55,7 +55,7 @@ Psycopg2Instrumentor().instrument()
 def get_db_connection():
     return psycopg2.connect(
         host="db",
-        database=os.getenv("POSTGRES_DB", "demo"),
+        database=os.getenv("POSTGRES_DB", "postgres"),
         user=os.getenv("POSTGRES_USER", "user"),
         password=os.getenv("POSTGRES_PASSWORD", "password")
     )

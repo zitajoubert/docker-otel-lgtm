@@ -47,6 +47,10 @@ handler = LoggingHandler(level=logging.INFO, logger_provider=logger_provider)
 logger.addHandler(handler)
 
 app = FastAPI()
+# 1. Instrument FastAPI (Starts the trace at the HTTP request)
+FastAPIInstrumentor.instrument_app(app)
+# 2. Instrument Psycopg2 (Adds the SQL execution to the same trace)
+Psycopg2Instrumentor().instrument()
 
 def get_db_connection():
     return psycopg2.connect(

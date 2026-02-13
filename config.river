@@ -4,7 +4,7 @@ otelcol.receiver.otlp "default" {
   http { endpoint = "0.0.0.0:4318" }
 
   output {
-    metrics = [otelcol.exporter.debug.console.input]
+    metrics = [otelcol.exporter.prometheus.to_prometheus.input, otelcol.exporter.debug.console.input]
     traces  = [otelcol.exporter.otlp.to_tempo.input]
     // TRANSLATOR: Send OTLP logs to the OTLP-to-Loki exporter
     logs    = [otelcol.exporter.loki.to_loki.input] 
@@ -15,6 +15,9 @@ otelcol.receiver.otlp "default" {
 otelcol.exporter.loki "to_loki" {
   // Now we can send them to the loki.process component
   forward_to = [loki.process.trace_correlation.receiver]
+}
+otelcol.exporter.prometheus "to_prometheus" {
+  forward_to = [prometheus.remote_write.local.receiver]
 }
 
 // 3. Process the logs (Extraction)

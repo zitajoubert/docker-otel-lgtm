@@ -15,14 +15,23 @@ from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
 
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+
 #OTLP Logging Provider
 resource = Resource.create({"service.name": "fastapi-app"})
+trace_provider = TracerProvider(resource=resource)
+trace.set_tracer_provider(trace_provider)
 logger_provider = LoggerProvider(resource=resource)
 set_logger_provider(logger_provider)
 
 #configure the Exporter to point to Alloy
 otlp_log_exporter = OTLPLogExporter(endpoint="http://alloy:4317", insecure=True)
 logger_provider.add_log_record_processor(BatchLogRecordProcessor(otlp_log_exporter))
+
+otlp_trace_exporter = OTLPSpanExporter(endpoint="http://alloy:4317", insecure=True)
+trace_provider.add_span_processor(BatchSpanProcessor(otlp_trace_exporter))
 
 #Trace Correlation Filter
 class TraceIdFilter(logging.Filter):

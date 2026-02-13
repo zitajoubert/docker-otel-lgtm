@@ -5,6 +5,7 @@ import psycopg2
 from typing import Optional
 from fastapi import FastAPI
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.psycopg2 import Psycopg2Instrumentor
 
 # OpenTelemetry Imports
 from opentelemetry import trace

@@ -1,4 +1,4 @@
-// 1. Accept OTLP data from the application
+// 1. Accept OTLP data
 otelcol.receiver.otlp "default" {
   grpc { endpoint = "0.0.0.0:4317" }
   http { endpoint = "0.0.0.0:4318" }
@@ -6,24 +6,18 @@ otelcol.receiver.otlp "default" {
   output {
     metrics = [otelcol.exporter.debug.console.input]
     traces  = [otelcol.exporter.otlp.to_tempo.input]
-    logs    = [loki.process.trace_correlation.receiver] 
+    // TRANSLATOR: Send OTLP logs to the OTLP-to-Loki exporter
+    logs    = [otelcol.exporter.loki.to_loki.input] 
   }
 }
 
-// 2. The Debug Exporter (This fixes the "metrics" error)
-otelcol.exporter.debug "console" {
-  verbosity = "detailed"
+// 2. TRANSLATOR: Convert OTLP logs into Loki logs
+otelcol.exporter.loki "to_loki" {
+  // Now we can send them to the loki.process component
+  forward_to = [loki.process.trace_correlation.receiver]
 }
 
-// 3. The Tempo Exporter (This fixes the "traces" error)
-otelcol.exporter.otlp "to_tempo" {
-  client {
-    endpoint = "lgtm:4317"
-    tls { insecure = true }
-  }
-}
-
-// 4. Log Processing & Correlation
+// 3. Process the logs (Extraction)
 loki.process "trace_correlation" {
   stage.regex {
     expression = "trace_id=(?P<trace_id>\\w+)"
@@ -36,7 +30,14 @@ loki.process "trace_correlation" {
   forward_to = [loki.write.local.receiver]
 }
 
-// 5. Final destination for Logs
+// 4. Final Destinations
+otelcol.exporter.otlp "to_tempo" {
+  client {
+    endpoint = "lgtm:4317"
+    tls { insecure = true }
+  }
+}
+
 loki.write "local" {
   endpoint {
     url = "http://lgtm:3100/loki/api/v1/push"
@@ -44,4 +45,8 @@ loki.write "local" {
   external_labels = {
     job = "fastapi-app",
   }
+}
+
+otelcol.exporter.debug "console" {
+  verbosity = "detailed"
 }

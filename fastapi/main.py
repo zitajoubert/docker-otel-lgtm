@@ -18,10 +18,17 @@ def get_db_connection():
     )
 
 @app.get("/rolldice")
-def roll_dice():
+def roll_dice(roll: Optional[int] = None):
     conn = get_db_connection()
     cur = conn.cursor()
-    val = random.randint(1, 6)
+    # 1. Check if the script sent a specific number
+    if roll is not None:
+        val = roll
+        logger.info(f"Received forced roll from traffic script: {val}")
+    else:
+        # 2. If no number sent, generate one (fallback)
+        val = random.randint(1, 6)
+        logger.info(f"Generating random roll internally: {val}")
     cur.execute("INSERT INTO dice_history (roll_value) VALUES (%s) RETURNING id;", (val,))
     new_id = cur.fetchone()[0]
     conn.commit()

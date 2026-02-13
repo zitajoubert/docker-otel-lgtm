@@ -28,6 +28,24 @@ loki.write "local" {
     job = "fastapi-app",
   }
 }
+// processing stage to extract the traceID from the text
+loki.process "trace_correlation" {
+  stage.regex {
+    expression = "trace_id=(?P<trace_id>\\w+)"
+  }
+  stage.labels {
+    values = {
+      trace_id = "trace_id",
+    }
+  }
+  forward_to = [loki.write.local.receiver]
+}
+// Update docker source to point to the process stage
+loki.source.docker "default" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.container_logs.output
+  forward_to = [loki.process.trace_correlation.receiver] // Connects to the correlation stage
+}
 
 // 4. Export Traces to Tempo
 otelcol.exporter.otlp "to_tempo" {

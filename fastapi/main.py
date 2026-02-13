@@ -4,6 +4,20 @@ import os
 import random
 import logging
 from typing import Optional
+from opentelemetry import trace
+
+class TraceIdFilter(logging.Filter):
+    def filter(self, record):
+        span = trace.get_current_span()
+        if span and span.get_span_context().is_valid:
+            record.trace_id = format(span.get_span_context().trace_id, '032x')
+            record.span_id = format(span.get_span_context().span_id, '16x')
+        else:
+            record.trace_id = '0' * 32
+            record.span_id = '0' * 16
+        return True
+
+logger.addFilter(TraceIdFilter())
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -39,3 +53,4 @@ def roll_dice(roll: Optional[int] = None):
     logger.info(f"Dice roll {val} saved to database with ID {new_id}")
     
     return {"status": "success", "roll": val, "db_id": new_id}
+

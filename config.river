@@ -13,7 +13,6 @@ otelcol.receiver.otlp "default" {
 
 // 2. TRANSLATOR: Convert OTLP logs into Loki logs
 otelcol.exporter.loki "to_loki" {
-  // Now we can send them to the loki.process component
   forward_to = [loki.process.trace_correlation.receiver]
 }
 otelcol.exporter.prometheus "to_prometheus" {

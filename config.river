@@ -24,7 +24,7 @@ otelcol.exporter.prometheus "to_prometheus" {
 loki.process "trace_correlation" {
   stage.json {
     expressions = { 
-      "extracted_id" = "trace_id", 
+      "extracted_id" = "traceid", 
     }
   }
  stage.labels {

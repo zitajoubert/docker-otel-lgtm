@@ -22,13 +22,14 @@ otelcol.exporter.prometheus "to_prometheus" {
 
 // 3. Process the logs (Extraction)
 loki.process "trace_correlation" {
-  stage.regex {
-    expression = "trace_id=(?P<trace_id>\\w+)"
+  stage.json {
+    expressions = { "trace_id" = "trace_id" }
   }
   stage.labels {
-    values = {
-      trace_id = "trace_id",
-    }
+      values = {
+         "trace_id" = "trace_id",
+         }
+    
   }
   forward_to = [loki.write.local.receiver]
 }

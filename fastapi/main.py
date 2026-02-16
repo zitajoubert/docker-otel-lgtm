@@ -81,23 +81,27 @@ def get_db_connection():
 
 @app.get("/rolldice")
 def roll_dice(roll: Optional[int] = None):
-    conn = get_db_connection()
-    cur = conn.cursor()
-    
-    if roll is not None:
-        val = roll
-        logger.info(f"Received forced roll: {val}")
-    else:
-        val = random.randint(1, 6)
-        logger.info(f"Generating random roll: {val}")
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
         
-    # This SQL execution will now appear in your Trace waterfall
-    cur.execute("INSERT INTO dice_history (roll_value) VALUES (%s) RETURNING id;", (val,))
-    new_id = cur.fetchone()[0]
-    conn.commit()
-    cur.close()
-    conn.close()
+        if roll is not None:
+            val = roll
+            logger.info(f"Received forced roll: {val}")
+        else:
+            val = random.randint(1, 6)
+            logger.info(f"Generating random roll: {val}")
+            
+        # This SQL execution will now appear in your Trace waterfall
+        cur.execute("INSERT INTO dice_history (roll_value) VALUES (%s) RETURNING id;", (val,))
+        new_id = cur.fetchone()[0]
+        conn.commit()
+        cur.close()
+        conn.close()
 
-    logger.info(f"Dice roll {val} saved to database with ID {new_id}")
-    
-    return {"status": "success", "roll": val, "db_id": new_id}
+        logger.info(f"Dice roll {val} saved to database with ID {new_id}")
+        
+        return {"status": "success", "roll": val, "db_id": new_id}
+    except as Exception as e:
+        logger.Exception("Database Conection Failed.")
+        return {"status": "error", "message": str(e)}, 500

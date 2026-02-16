@@ -23,7 +23,7 @@ otelcol.exporter.prometheus "to_prometheus" {
 // 3. Process the logs (Extraction)
 loki.process "trace_correlation" {
  stage.regex {
-    expressions = { "traceid" = "traceid" }
+    expression = "(?P<traceid>[a-f0-9]{32})"
   }
   stage.labels {
       values = { "trace_id" = "traceid" }

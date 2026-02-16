@@ -61,7 +61,7 @@ logger.addFilter(TraceIdFilter())
 
 # Attach OTLP Handler so logs go to Alloy/Loki
 handler = LoggingHandler(level=logging.INFO, logger_provider=logger_provider)
-logger.addHandler(handler)
+logging.getLogger().addHandler(handler)
 
 # 4. Initialize FastAPI and Instrumentation
 app = FastAPI()
@@ -72,36 +72,44 @@ FastAPIInstrumentor.instrument_app(app)
 Psycopg2Instrumentor().instrument()
 
 def get_db_connection():
-    return psycopg2.connect(
-        host="db",
-        database=os.getenv("POSTGRES_DB", "postgres"),
-        user=os.getenv("POSTGRES_USER", "user"),
-        password=os.getenv("POSTGRES_PASSWORD", "password")
-    )
+    try:
+        conn = psycopg2.connect(
+            host="db",
+            database=os.getenv("POSTGRES_DB", "postgres"),
+            user=os.getenv("POSTGRES_USER", "user"),
+            password=os.getenv("POSTGRES_PASSWORD", "password"),
+            connect_timeout=5  # Fast fail for startup
+        )
+        conn.close()
+        logger.info("Database connection verified successfully.")
+    except Exception as e:
+        # Log immediately and force a flush to Alloy/Loki
+        logger.exception("CRITICAL: Initial Database Connection Failed")
+        logger_provider.force_flush()  # Ensures the log reaches Loki before crash
+        raise e
 
 @app.get("/rolldice")
 def roll_dice(roll: Optional[int] = None):
-    try:
-        conn = get_db_connection()
-        cur = conn.cursor()
+ 
+    conn = get_db_connection()
+    cur = conn.cursor()
         
-        if roll is not None:
-            val = roll
-            logger.info(f"Received forced roll: {val}")
-        else:
-            val = random.randint(1, 6)
-            logger.info(f"Generating random roll: {val}")
+     if roll is not None:
+        val = roll
+        logger.info(f"Received forced roll: {val}")
+    else:
+        val = random.randint(1, 6)
+        logger.info(f"Generating random roll: {val}")
             
-        # This SQL execution will now appear in your Trace waterfall
-        cur.execute("INSERT INTO dice_history (roll_value) VALUES (%s) RETURNING id;", (val,))
-        new_id = cur.fetchone()[0]
-        conn.commit()
-        cur.close()
-        conn.close()
+    # This SQL execution will now appear in your Trace waterfall
+    cur.execute("INSERT INTO dice_history (roll_value) VALUES (%s) RETURNING id;", (val,))
+    new_id = cur.fetchone()[0]
+    conn.commit()
+    cur.close()
+    conn.close()
 
-        logger.info(f"Dice roll {val} saved to database with ID {new_id}")
+    logger.info(f"Dice roll {val} saved to database with ID {new_id}")
         
-        return {"status": "success", "roll": val, "db_id": new_id}
-    except as Exception as e:
-        logger.Exception("Database Conection Failed.")
-        return {"status": "error", "message": str(e)}, 500
+    return {"status": "success", "roll": val, "db_id": new_id}
+  
+

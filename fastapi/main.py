@@ -4,6 +4,8 @@ import logging
 import psycopg2
 from typing import Optional
 from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
 # OpenTelemetry Core Imports
 from opentelemetry import trace
@@ -65,6 +67,19 @@ logging.getLogger().addHandler(handler)
 
 # 4. Initialize FastAPI and Instrumentation
 app = FastAPI()
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    # This captures the full stack trace and sends it to Loki via OTLP
+    logger.exception("Unhandled Internal Server Error: %s", exc)
+    
+    # Ensure the log is flushed to Alloy before the response is sent
+    logger_provider.force_flush()
+    
+    return JSONResponse(
+        status_code=500,
+        content={"status": "error", "message": "Internal Server Error"},
+    )
 
 # Auto-instruments HTTP requests (starts the trace)
 FastAPIInstrumentor.instrument_app(app)

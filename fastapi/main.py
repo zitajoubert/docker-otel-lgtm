@@ -7,28 +7,26 @@ from fastapi import FastAPI
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-# OpenTelemetry Core Imports
+
 from opentelemetry import trace
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.psycopg2 import Psycopg2Instrumentor
 
-# OpenTelemetry Tracing Setup
+
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
-# OpenTelemetry Logging Setup
 from opentelemetry._logs import set_logger_provider
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
 
-# 1. Define Common Resource (Used for both Logs and Traces)
-# The "service.name" is critical for the Grafana waterfall visualization.
+# 1. Define Common Resource (Used for both Logs and Traces)                                             #Trace filtering en trace logging vanaf gemini
 resource = Resource.create({"service.name": "fastapi-app"})
 
-# 2. Initialize TRACING (Fixes the "No data in waterfall" issue)
+# 2. Initialize TRACING 
 trace_provider = TracerProvider(resource=resource)
 trace.set_tracer_provider(trace_provider)
 # Sends traces to Alloy on port 4317
@@ -53,7 +51,7 @@ class TraceIdFilter(logging.Filter):
             record.span_id = '0' * 16
         return True
 
-# Standard Logging Configuration
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s %(levelname)s [trace_id=%(trace_id)s] %(message)s'
@@ -65,10 +63,10 @@ logger.addFilter(TraceIdFilter())
 handler = LoggingHandler(level=logging.INFO, logger_provider=logger_provider)
 logger.addHandler(handler)
 
-# 4. Initialize FastAPI and Instrumentation
+
 app = FastAPI()
 
-@app.exception_handler(Exception)
+@app.exception_handler(Exception)                                                       #gekry by gemini - hanteer die DB loki errors 
 async def global_exception_handler(request: Request, exc: Exception):
     # This captures the full stack trace and sends it to Loki via OTLP
     logger.exception("Unhandled Internal Server Error: %s", exc)
@@ -86,8 +84,10 @@ FastAPIInstrumentor.instrument_app(app)
 # Auto-instruments Postgres queries (adds SQL as a child span)
 Psycopg2Instrumentor().instrument()
 
-def get_db_connection():
-    return psycopg2.connect(
+
+
+def get_db_connection():                                    # my api code
+    return psycopg2.connect(            
         host="db",
         database=os.getenv("POSTGRES_DB", "postgres"),
         user=os.getenv("POSTGRES_USER", "user"),

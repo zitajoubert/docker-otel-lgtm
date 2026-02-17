@@ -5,7 +5,7 @@ import uvicorn
 from fastapi import FastAPI
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(_name__)
+logger = logging.getLogger('_name__')
 
 url = os.getenv("url", "http//app:8000/rolldice")
 app = FastApi()

@@ -7,8 +7,7 @@ datasources:
       derivedFields:
         - name: traceid
           matcherRegex: '"traceid":"(\w+)"'
-        
           matcherType: "regex" 
           url: '$${__value.raw}' 
-          datasourceUid: tempo    
+          datasourceUid: Tempo    
           internalLink: true      

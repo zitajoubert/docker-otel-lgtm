@@ -84,7 +84,7 @@ services:
       - lgtm-demo
     depends_on:
       - alloy
-      - db-app
+      - app
     
 
       

@@ -45,6 +45,7 @@ services:
       - OTEL_RESOURCE_ATTRIBUTES=deployment.environment=postgres
       - OTEL_PYTHON_LOG_CORRELATION=true
       - OTEL_LOGS_EXPORTER=otlp
+      - OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true
       - OTEL_METRICS_EXPORTER=otlp
       - OTEL_TRACES_EXPORTER=otlp
       - OTEL_LOG_LEVEL=debug

@@ -1,10 +1,25 @@
+import os
 import requests
-from opentelemetry.instrumentation.requests import RequestsInstrumentor
+import logging
+from fastapi import FastAPI
 
-RequestsInstrumentor().instrument()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(_name__)
+
+url = os.getenv("url", "http//app:8000/rolldice")
+app = FastApi()
 
 @app.get("/caller")
 def caller():
-    response = requests.get("http://localhost:8000/rolldice")
-    print("Connected to rolldice api")
-    return response.json()
+    logger.info(f"Forwaring request to: {url}")
+    try:
+        response = requests.get(url)
+        return response.json()
+    except Exception as e:
+        logger.exception("Failed to connect to API")
+        return {error: str(e)}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8001, log_config=None)
+

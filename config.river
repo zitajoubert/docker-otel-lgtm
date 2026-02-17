@@ -4,7 +4,7 @@ otelcol.receiver.otlp "default" {
   http { endpoint = "0.0.0.0:4318" }
 
   output {
-    metrics = [otelcol.exporter.prometheus.to_prometheus.input, otelcol.exporter.debug.console.input]
+    metrics = [otelcol.exporter.prometheus.to_prometheus.input]
     traces  = [otelcol.exporter.otlp.to_tempo.input]
     // TRANSLATOR: Send OTLP logs to the OTLP-to-Loki exporter
     logs    = [otelcol.exporter.loki.to_loki.input] 
@@ -13,25 +13,10 @@ otelcol.receiver.otlp "default" {
 
 // 2. TRANSLATOR: Convert OTLP logs into Loki logs
 otelcol.exporter.loki "to_loki" {
-  forward_to = [loki.process.trace_correlation.receiver]
+  orward_to = [loki.write.local.receiver]
 }
 otelcol.exporter.prometheus "to_prometheus" {
   forward_to = [prometheus.remote_write.local.receiver]
-}
-
-// 3. Process the logs (Extraction)
-loki.process "trace_correlation" {
-  stage.json {
-    expressions = { 
-      "extracted_id" = "traceid", 
-    }
-  }
- stage.labels {
-    values = { 
-      "trace_id" = "extracted_id", 
-    }
-  }
-  forward_to = [loki.write.local.receiver]
 }
 
 // 4. Final Destinations
@@ -46,13 +31,7 @@ loki.write "local" {
   endpoint {
     url = "http://lgtm:3100/loki/api/v1/push"
   }
-  external_labels = {
-    job = "fastapi-app",
-  }
-}
-
-otelcol.exporter.debug "console" {
-  verbosity = "detailed"
+  // No external_labels needed; service_name is automatically added
 }
 prometheus.scrape "postgres" {
   targets = [{"__address__" = "postgres-exporter:9187"}]

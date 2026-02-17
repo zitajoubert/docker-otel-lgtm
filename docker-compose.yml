@@ -71,6 +71,23 @@ services:
       - db
     networks:
       - lgtm-demo
+    
+  proxy-app:
+    build: ./proxy-api
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4317
+      - OTEL_SERVICE_NAME=proxy-service
+      - UPSTREAM_URL=http://db-app:8000/rolldice
+    ports:
+      - "8001:8000"
+    networks:
+      - lgtm-demo
+    depends_on:
+      - alloy
+      - db-app
+    
 
+      
+    
 networks:
   lgtm-demo:

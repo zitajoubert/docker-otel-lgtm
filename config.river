@@ -13,7 +13,7 @@ otelcol.receiver.otlp "default" {
 
 // 2. TRANSLATOR: Convert OTLP logs into Loki logs
 otelcol.exporter.loki "to_loki" {
-  orward_to = [loki.write.local.receiver]
+  forward_to = [loki.write.local.receiver]
 }
 otelcol.exporter.prometheus "to_prometheus" {
   forward_to = [prometheus.remote_write.local.receiver]

@@ -7,7 +7,7 @@ from fastapi import FastAPI
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('_name__')
 
-url = os.getenv("url", "http://0.0.0.0:8000/rolldice")
+url = os.getenv("url", "http://app:8000/rolldice")
 app = FastAPI()
 
 @app.get("/caller")

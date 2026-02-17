@@ -18,7 +18,7 @@ def caller():
         return response.json()
     except Exception as e:
         logger.exception("Failed to connect to API")
-        return {error: str(e)}
+        return {"error": str(e)}
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8001, log_config=None)

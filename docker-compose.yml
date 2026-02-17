@@ -77,7 +77,7 @@ services:
     environment:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4317
       - OTEL_SERVICE_NAME=proxy-app
-      - UPSTREAM_URL=http://app:8000/rolldice
+      - UPSTREAM_URL=http://localhost:8000/rolldice
       - OTEL_LOGS_EXPORTER=otlp            
       - OTEL_PYTHON_LOG_CORRELATION=true   
       - OTEL_TRACES_EXPORTER=otlp     

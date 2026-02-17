@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 
 # Standard Python Logging - No OTLP or Trace Filtering code needed here!
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('__name__')
 
 app = FastAPI()
 

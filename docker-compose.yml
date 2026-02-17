@@ -3,7 +3,7 @@ services:
   lgtm:
     image: grafana/otel-lgtm:latest
     volumes:
-      - ./provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./loki.yaml:/etc/grafana/provisioning/datasources/loki.yaml:ro
     ports:
       - "3000:3000"      
       - "4317:4317"     

@@ -2,6 +2,8 @@ services:
   # The LGTM all-in-one backend
   lgtm:
     image: grafana/otel-lgtm:latest
+    volumes:
+      - ./provisioning/datasources:/etc/grafana/provisioning/datasources
     ports:
       - "3000:3000"      
       - "4317:4317"     

@@ -78,6 +78,10 @@ services:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4317
       - OTEL_SERVICE_NAME=proxy-app
       - UPSTREAM_URL=http://app:8000/rolldice
+      - OTEL_LOGS_EXPORTER=otlp            
+      - OTEL_PYTHON_LOG_CORRELATION=true   
+      - OTEL_TRACES_EXPORTER=otlp     
+      - OTEL_METRICS_EXPORTER=otlp
     ports:
       - "8001:8000"
     networks:
@@ -85,6 +89,9 @@ services:
     depends_on:
       - alloy
       - app
+    command: >
+      opentelemetry-instrument 
+      python main.py
     
 
       

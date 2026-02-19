@@ -23,10 +23,10 @@ version: 0.1.0
 # It is recommended to use it with quotes.
 appVersion: "1.16.0"
 
-dependancies:
+dependencies:
   - name: alloy
-    version: "0.x.x"
+    version: "0.2.0"
     repository: "https://grafana.github.io/helm-charts"
   - name: postgresql
-    version: "15.x.x"
+    version: "12.1.0"
     repository: "https://charts.bitnami.com/bitnami"

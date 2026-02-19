@@ -64,13 +64,16 @@ kind: Service
 metadata:
   name: {{ $name }}
 spec:
+  type: {{ $config.serviceType | default "ClusterIP" }}
   selector:
     app: {{ $name }}
   ports:
     - protocol: TCP
       port: {{ $config.port }}
       targetPort: {{ $config.port }}
-{{- end }}
+      {{- if eq $config.serviceType "LoadBalancer" }}
+      nodePort: {{ $config.nodePort | default "" }}
+      {{- end }}
 
 ---
 apiVersion: v1

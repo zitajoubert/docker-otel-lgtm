@@ -161,7 +161,7 @@ tolerations: []
 affinity: {}
 postgresql:
   enabled: false
-  
+
 apps:
   fastapi-app:
     image: docker-otel-lgtm-app:latest 
@@ -169,6 +169,7 @@ apps:
     command: ["opentelemetry-instrument"]
     args: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
     port: 8000
+    serviceType: ClusterIP
     upstreamUrl: "" # Main app doesn't have an upstream
     databaseUrl: "postgresql://user:password@postgres-db:5432/mydatabase"
     replicas: 1
@@ -179,6 +180,7 @@ apps:
     command: ["opentelemetry-instrument"]
     args: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
     port: 8000
+    serviceType: LoadBalancer
     upstreamUrl: "http://fastapi-app:8000/rolldice" # K8s Service Discovery name
     replicas: 1
 

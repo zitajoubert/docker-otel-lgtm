@@ -37,6 +37,6 @@ prometheus.scrape "postgres" {
 }
 prometheus.remote_write "local" {
   endpoint {
-    url = "http://lgtm:9090/api/v1/write"
+    url = "http://docker-otel-lgtm-mimir-nginx:80/api/v1/push"
   }
 }

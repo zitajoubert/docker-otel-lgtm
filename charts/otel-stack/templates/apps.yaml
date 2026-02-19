@@ -45,6 +45,18 @@ spec:
               value: {{ $val | quote }}
             {{- end }}
             {{- end }}
+            {{- if eq $name "postgres-db" }}
+          volumeMounts:
+              - name: init-sql-volume
+                mountPath: /docker-entrypoint-initdb.d
+            {{- end }}
+        {{- if eq $name "postgres-db" }}
+      volumes:
+        - name: init-sql-volume
+          configMap:
+            name: postgres-init-sql
+      {{- end }}
+
      
 ---
 apiVersion: v1

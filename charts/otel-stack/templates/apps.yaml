@@ -74,7 +74,7 @@ spec:
       {{- if eq $config.serviceType "LoadBalancer" }}
       nodePort: {{ $config.nodePort | default "" }}
       {{- end }}
-
+{{- end }}
 ---
 apiVersion: v1
 kind: Service

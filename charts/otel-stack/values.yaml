@@ -174,7 +174,7 @@ apps:
     image: docker-otel-lgtm-proxy-app:latest
     imagePullPolicy: IfNotPresent
     command: ["opentelemetry-instrument"]
-    args: ["python", "main.py"]
+    args: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
     port: 8000
     upstreamUrl: "http://fastapi-app:8000/rolldice" # K8s Service Discovery name
     replicas: 1

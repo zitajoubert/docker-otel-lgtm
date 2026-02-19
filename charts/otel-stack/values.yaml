@@ -164,6 +164,8 @@ apps:
   fastapi-app:
     image: docker-otel-lgtm-app:latest 
     imagePullPolicy: IfNotPresent
+    command: ["opentelemetry-instrument"]
+    args: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
     port: 8000
     upstreamUrl: "" # Main app doesn't have an upstream
     replicas: 1

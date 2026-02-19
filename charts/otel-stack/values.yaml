@@ -162,14 +162,14 @@ affinity: {}
 
 apps:
   fastapi-app:
-    image: my-docker-hub/fastapi-app:latest
+    image: docker-otel-lgtm-app:latest 
     imagePullPolicy: IfNotPresent
     port: 8000
     upstreamUrl: "" # Main app doesn't have an upstream
     replicas: 1
 
   proxy-app:
-    image: my-docker-hub/proxy-app:latest
+    image: docker-otel-lgtm-proxy-app:latest
     imagePullPolicy: IfNotPresent
     port: 8000
     upstreamUrl: "http://fastapi-app:8000/rolldice" # K8s Service Discovery name

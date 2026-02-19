@@ -18,8 +18,14 @@ spec:
         - name: {{ $name }}
           image: {{ $config.image }}
           imagePullPolicy: {{ $config.imagePullPolicy | default "IfNotPresent" }}
-          command: {{ $config.command | toJson }}
-          args: {{ $config.args | toJson }}
+          command:
+            {{- range $config.command }}
+            - {{ . | quote }}
+            {{- end }}
+          args:
+            {{- range $config.args }}
+            - {{ . | quote }}
+            {{- end }}
           ports:
             - containerPort: {{ $config.port }}
           env:

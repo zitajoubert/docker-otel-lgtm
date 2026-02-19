@@ -26,13 +26,12 @@ spec:
             - name: OTEL_SERVICE_NAME
               value: {{ $name | quote }}
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: "http://otel-stack-alloy:4317" # Links to the Alloy sub-chart
+              value: "http://otel-stack-alloy:4317"
             - name: OTEL_PYTHON_LOG_CORRELATION
               value: "true"
             - name: UPSTREAM_URL
-              value: {{ $config.upstreamUrl | quote }}
-          command: ["opentelemetry-instrument"]
-          args: ["python", "main.py"]
+              value: {{ $config.upstreamUrl | default "" | quote }}
+     
 ---
 apiVersion: v1
 kind: Service

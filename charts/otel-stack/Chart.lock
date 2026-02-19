@@ -5,5 +5,8 @@ dependencies:
 - name: postgresql
   repository: https://charts.bitnami.com/bitnami
   version: 12.1.0
-digest: sha256:fd0acfea673880309b537d8af7f85e53fb584bf8558c7a138b08ecf07a2c3609
-generated: "2026-02-19T10:20:44.156686+02:00"
+- name: lgtm-distributed
+  repository: https://grafana.github.io/helm-charts
+  version: 3.0.1
+digest: sha256:aa2a36a5b933ad4a84a48d26ae72f00eef76598c1fb97acaf0566439ce731fce
+generated: "2026-02-19T11:32:58.177753+02:00"

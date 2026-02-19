@@ -176,7 +176,7 @@ apps:
     command: ["opentelemetry-instrument"]
     args: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
     port: 8000
-    upstreamUrl: "http://fastapi-app:8000/rolldice" # K8s Service Discovery name
+    upstreamUrl: "http://app:8000/rolldice" # K8s Service Discovery name
     replicas: 1
 
 # Configuration for the Alloy Dependency

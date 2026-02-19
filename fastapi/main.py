@@ -24,7 +24,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 def get_db_connection():
     return psycopg2.connect(
-        host="db",
+        host="postgres-db",
         database=os.getenv("POSTGRES_DB", "postgres"),
         user=os.getenv("POSTGRES_USER", "user"),
         password=os.getenv("POSTGRES_PASSWORD", "password"),

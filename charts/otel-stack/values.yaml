@@ -159,7 +159,9 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
-
+postgresql:
+  enabled: false
+  
 apps:
   fastapi-app:
     image: docker-otel-lgtm-app:latest 

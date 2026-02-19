@@ -17,6 +17,7 @@ spec:
       containers:
         - name: {{ $name }}
           image: {{ $config.image }}
+          imagePullPolicy: {{ $config.imagePullPolicy | default "Never" }}
           ports:
             - containerPort: {{ $config.port }}
           env:

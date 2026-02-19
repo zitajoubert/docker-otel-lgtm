@@ -187,6 +187,7 @@ apps:
   postgres-db: 
     image: postgres:15
     imagePullPolicy: IfNotPresent
+    serviceType: LoadBalancer
     port: 5432
     env:
       POSTGRES_USER: user

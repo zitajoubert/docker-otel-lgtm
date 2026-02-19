@@ -159,3 +159,23 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+apps:
+  fastapi-app:
+    image: my-docker-hub/fastapi-app:latest
+    port: 8000
+    upstreamUrl: "" # Main app doesn't have an upstream
+    replicas: 1
+
+  proxy-app:
+    image: my-docker-hub/proxy-app:latest
+    port: 8000
+    upstreamUrl: "http://fastapi-app:8000/rolldice" # K8s Service Discovery name
+    replicas: 1
+
+# Configuration for the Alloy Dependency
+alloy:
+  alloy:
+    configMap:
+      name: alloy-config
+      key: config.river

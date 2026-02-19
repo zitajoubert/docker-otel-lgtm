@@ -18,7 +18,6 @@ otelcol.exporter.prometheus "to_prometheus" {
   forward_to = [prometheus.remote_write.local.receiver]
 }
 
-// 4. Final Destinations
 otelcol.exporter.otlp "to_tempo" {
   client {
     endpoint = "lgtm:4317"

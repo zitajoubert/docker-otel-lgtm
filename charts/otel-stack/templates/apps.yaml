@@ -1,0 +1,45 @@
+{{- range $name, $config := .Values.apps }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+spec:
+  replicas: {{ $config.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app: {{ $name }}
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}
+    spec:
+      containers:
+        - name: {{ $name }}
+          image: {{ $config.image }}
+          ports:
+            - containerPort: {{ $config.port }}
+          env:
+            - name: OTEL_SERVICE_NAME
+              value: {{ $name | quote }}
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-stack-alloy:4317" # Links to the Alloy sub-chart
+            - name: OTEL_PYTHON_LOG_CORRELATION
+              value: "true"
+            - name: UPSTREAM_URL
+              value: {{ $config.upstreamUrl | quote }}
+          command: ["opentelemetry-instrument"]
+          args: ["python", "main.py"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+spec:
+  selector:
+    app: {{ $name }}
+  ports:
+    - protocol: TCP
+      port: {{ $config.port }}
+      targetPort: {{ $config.port }}
+{{- end }}

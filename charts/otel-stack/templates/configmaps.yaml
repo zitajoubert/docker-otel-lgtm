@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alloy-config
+data:
+  config.river: |
+{{ .Files.Get "config.river" | indent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-provisioning
+data:
+  loki.yaml: |
+{{ .Files.Get "loki.yaml" | indent 4 }}

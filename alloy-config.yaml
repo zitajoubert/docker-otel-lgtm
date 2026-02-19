@@ -1,0 +1,26 @@
+apiVersion: v1
+data:
+  config.river: "\notelcol.receiver.otlp \"default\" {\n  grpc { endpoint = \"0.0.0.0:4317\"
+    }\n  http { endpoint = \"0.0.0.0:4318\" }\n\n  output {\n    metrics = [otelcol.exporter.prometheus.to_prometheus.input]\n
+    \   traces  = [otelcol.exporter.otlp.to_tempo.input]\n    // TRANSLATOR: Send
+    OTLP logs to the OTLP-to-Loki exporter\n    logs    = [otelcol.exporter.loki.to_loki.input]
+    \n  }\n}\n\notelcol.exporter.loki \"to_loki\" {\n  forward_to = [loki.write.local.receiver]\n}\notelcol.exporter.prometheus
+    \"to_prometheus\" {\n  forward_to = [prometheus.remote_write.local.receiver]\n}\n\notelcol.exporter.otlp
+    \"to_tempo\" {\n  client {\n    endpoint = \"docker-otel-lgtm-tempo-distributor:4317\"\n    tls { insecure =
+    true }\n  }\n}\n\nloki.write \"local\" {\n  endpoint {\n    url = \"http://docker-otel-lgtm-loki-gateway:80/loki/api/v1/push\"\n
+    \ }\n  // No external_labels needed; service_name is automatically added\n}\nprometheus.scrape
+    \"postgres\" {\n  targets = [{\"__address__\" = \"postgres-exporter:9187\"}]\n
+    \ forward_to = [prometheus.remote_write.local.receiver]\n}\nprometheus.remote_write
+    \"local\" {\n  endpoint {\n    url = \"http://docker-otel-lgtm-mimir-nginx:80/api/v1/push\"\n  }\n}\n"
+kind: ConfigMap
+metadata:
+  annotations:
+    meta.helm.sh/release-name: docker-otel-lgtm
+    meta.helm.sh/release-namespace: default
+  creationTimestamp: "2026-02-19T11:40:29Z"
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: alloy-config
+  namespace: default
+  resourceVersion: "710"
+  uid: 75c6227f-4432-404e-a084-aa36f4f9905b

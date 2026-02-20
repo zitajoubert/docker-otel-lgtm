@@ -40,9 +40,19 @@ spec:
           {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["opentelemetry-instrument", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://user:password@postgres-db:5432/postgres"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://alloy:4317"
+            - name: OTEL_SERVICE_NAME
+              value: "fastapi-app"
+            - name: OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED
+              value: "true"
           ports:
             - name: http
-              containerPort: {{ .Values.service.port }}
+              containerPort: 8000
               protocol: TCP
           {{- with .Values.livenessProbe }}
           livenessProbe:

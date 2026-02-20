@@ -47,30 +47,31 @@ spec:
             - name: postgres
               containerPort: 5432
               protocol: TCP
-          {{- with .Values.livenessProbe }}
           livenessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.readinessProbe }}
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 10
+            periodSeconds: 10
           readinessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 5
+            periodSeconds: 10 
           volumeMounts:
             - name: init-db
               mountPath: /docker-entrypoint-initdb.d/init.sql
               subPath: init.sql
-              {{- with .Values.volumeMounts }}
-              {{- toYaml . | nindent 12 }}
-              {{- end }}
+            {{- with .Values.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
         
-      # volumes must be outside the containers array, but inside the spec
       volumes:
         - name: init-db
           configMap:
             name: {{ include "postgres-db.fullname" . }}-init
-          {{- with .Values.volumes }}
-          {{- toYaml . | nindent 8 }}
-          {{- end }}
+        {{- with .Values.volumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
         
       {{- with .Values.nodeSelector }}
       nodeSelector:

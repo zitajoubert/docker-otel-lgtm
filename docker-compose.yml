@@ -1,4 +1,4 @@
-ervices:
+services:
   # The LGTM all-in-one backend
   lgtm:
     image: grafana/otel-lgtm:latest
@@ -17,7 +17,8 @@ ervices:
     command: run --server.http.listen-addr=0.0.0.0:12345 --stability.level=experimental /etc/alloy/config.river
     ports:
       - "12345:12345"
-      - "12346:4317"
+      - "4317:4317"
+      - "4318:4318"
     networks:
       - lgtm-demo
 

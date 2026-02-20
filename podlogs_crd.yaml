@@ -22,6 +22,17 @@ spec:
     singular: podlogs
   scope: Namespaced
   versions:
+  - name: v1alpha1  # (or whatever version is actually there)
+    served: true
+    storage: true
+    ...
+  - name: v1 # Add this to satisfy the "missing from spec" error
+    served: true
+    storage: false # Keep this false since the other one is the real storage
+    schema:
+      openAPIV3Schema:
+        type: object
+        x-kubernetes-preserve-unknown-fields: true
   - name: v1alpha2
     schema:
       openAPIV3Schema:

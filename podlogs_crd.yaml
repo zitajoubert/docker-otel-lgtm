@@ -239,4 +239,6 @@ status:
     status: "True"
     type: Established
   storedVersions:
+  - v1
+  - v1alpha1
   - v1alpha2

@@ -18,14 +18,21 @@ spec:
         - name: {{ $name }}
           image: {{ $config.image }}
           imagePullPolicy: {{ $config.imagePullPolicy | default "IfNotPresent" }}
+          
+          {{- if $config.command }}
           command:
             {{- range $config.command }}
             - {{ . | quote }}
             {{- end }}
+          {{- end }}
+          
+          {{- if $config.args }}
           args:
             {{- range $config.args }}
             - {{ . | quote }}
             {{- end }}
+          {{- end }}
+          
           ports:
             - containerPort: {{ $config.port }}
           env:
@@ -45,19 +52,20 @@ spec:
               value: {{ $val | quote }}
             {{- end }}
             {{- end }}
-            {{- if eq $name "postgres-db" }}
+            
+          {{- if eq $name "postgres-db" }}
           volumeMounts:
-              - name: init-sql-volume
-                mountPath: /docker-entrypoint-initdb.d
-            {{- end }}
-        {{- if eq $name "postgres-db" }}
+            - name: init-sql-volume
+              mountPath: /docker-entrypoint-initdb.d
+          {{- end }}
+          
+      {{- if eq $name "postgres-db" }}
       volumes:
         - name: init-sql-volume
           configMap:
             name: postgres-init-sql
       {{- end }}
 
-     
 ---
 apiVersion: v1
 kind: Service
@@ -75,6 +83,7 @@ spec:
       nodePort: {{ $config.nodePort | default "" }}
       {{- end }}
 {{- end }}
+
 ---
 apiVersion: v1
 kind: Service

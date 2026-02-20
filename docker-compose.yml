@@ -4,8 +4,6 @@ services:
     image: grafana/otel-lgtm:latest
     ports:
       - "3000:3000"      
-      - "4317:4317"     
-      - "4318:4318"
     networks:
       - lgtm-demo
 
@@ -13,12 +11,14 @@ services:
   alloy:
     image: grafana/alloy:latest
     volumes:
-      - ./config.river:/etc/alloy/config.river
-    command: run --server.http.listen-addr=0.0.0.0:12345 --stability.level=experimental /etc/alloy/config.river
+      - ${PWD}/config.river:/etc/alloy/config.river:ro
+    command: 
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - /etc/alloy/config.river
     ports:
       - "12345:12345"
-      - "4317:4317"
-      - "4318:4318"
+
     networks:
       - lgtm-demo
 
@@ -68,6 +68,26 @@ services:
       - "9187:9187"
     depends_on:
       - db
+    networks:
+      - lgtm-demo
+
+  proxy-app:
+    build: ./fastapi_proxy  # Ensure this points to your proxy's Dockerfile folder
+    environment:
+      - UPSTREAM_URL=http://app:8000/rolldice
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4317
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - OTEL_SERVICE_NAME=proxy-app
+      - OTEL_LOGS_EXPORTER=otlp
+      - OTEL_METRICS_EXPORTER=otlp
+      - OTEL_TRACES_EXPORTER=otlp
+      - OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true
+    command: opentelemetry-instrument uvicorn main:app --host 0.0.0.0 --port 8001
+    ports:
+      - "8001:8001"
+    depends_on:
+      - app
+      - alloy
     networks:
       - lgtm-demo
 

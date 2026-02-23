@@ -11,6 +11,10 @@ spec:
       protocol: TCP
       port: 3000
       targetPort: 3000
+    - name: loki          # <--- ADDED THIS
+      protocol: TCP
+      port: 3100
+      targetPort: 3100
     - name: pyroscope
       protocol: TCP
       port: 4040
@@ -47,6 +51,7 @@ spec:
           image: grafana/otel-lgtm:latest
           ports:
             - containerPort: 3000
+            - containerPort: 3100
             - containerPort: 4040
             - containerPort: 4317
             - containerPort: 4318

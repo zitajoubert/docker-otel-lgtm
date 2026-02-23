@@ -1,4 +1,3 @@
-
 otelcol.receiver.otlp "default" {
   grpc { endpoint = "0.0.0.0:4317" }
   http { endpoint = "0.0.0.0:4318" }
@@ -11,10 +10,11 @@ otelcol.receiver.otlp "default" {
 }
 
 otelcol.exporter.loki "to_loki" {
-  forward_to = [loki.write.local.receiver]
+  forward_to = [loki.write.lgtm.receiver]
 }
+
 otelcol.exporter.prometheus "to_prometheus" {
-  forward_to = [prometheus.remote_write.local.receiver]
+  forward_to = [prometheus.remote_write.lgtm.receiver]
 }
 
 otelcol.exporter.otlp "to_tempo" {
@@ -24,17 +24,18 @@ otelcol.exporter.otlp "to_tempo" {
   }
 }
 
-loki.write "local" {
+loki.write "lgtm" {
   endpoint {
     url = "http://lgtm:3100/loki/api/v1/push"
   }
-  // No external_labels needed; service_name is automatically added
 }
+
 prometheus.scrape "postgres" {
   targets = [{"__address__" = "postgres-exporter:9187"}]
-  forward_to = [prometheus.remote_write.local.receiver]
+  forward_to = [prometheus.remote_write.lgtm.receiver]
 }
-prometheus.remote_write "local" {
+
+prometheus.remote_write "lgtm" {
   endpoint {
     url = "http://lgtm:9090/api/v1/write"
   }

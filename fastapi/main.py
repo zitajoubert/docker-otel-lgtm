@@ -24,12 +24,11 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 def get_db_connection():
     return psycopg2.connect(
-        host="db",
+        host=os.getenv("POSTGRES_HOST", "postgres"), 
         database=os.getenv("POSTGRES_DB", "postgres"),
         user=os.getenv("POSTGRES_USER", "user"),
         password=os.getenv("POSTGRES_PASSWORD", "password"),
-        connect_timeout=5  
-    )
+        connect_timeout=5)
 
 @app.get("/rolldice")
 def roll_dice(roll: Optional[int] = None):

@@ -7,7 +7,7 @@ from fastapi import FastAPI
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('_name__')
 
-url = os.getenv("UPSTREAM_URL", "http://app:8000/rolldice")
+url = os.getenv("UPSTREAM_URL", "http://fastapi-api:8000/rolldice")
 app = FastAPI()
 
 @app.get("/caller")
@@ -21,5 +21,5 @@ def caller():
         return {"error": str(e)}
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8001, log_config=None)
+    uvicorn.run("main:app", host="0.0.0.0", port=8001)
 

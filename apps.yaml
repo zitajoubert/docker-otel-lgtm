@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-api
+  namespace: monitoring # Keeping it in the same namespace makes networking easier
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fastapi-api
+  template:
+    metadata:
+      labels:
+        app: fastapi-api
+    spec:
+      containers:
+      - name: fastapi-api
+        image: fastapi:latest # Ensure you built this with minikube docker-env
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        env:
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://alloy.monitoring.svc:4317"
+        - name: DATABASE_URL
+          value: "postgresql://user:password@postgres:5432/postgres" # Changed 'db' to 'postgres'
+        - name: OTEL_SERVICE_NAME
+          value: "fastapi-server"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fastapi-api
+  namespace: monitoring
+spec:
+  selector:
+    app: fastapi-api
+  ports:
+  - port: 8000
+    targetPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: proxy-api
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: proxy-api
+  template:
+    metadata:
+      labels:
+        app: proxy-api
+    spec:
+      containers:
+      - name: proxy-api
+        image: proxy-app:latest
+        imagePullPolicy: Never
+        command: ["opentelemetry-instrument"]
+        args: 
+          - "uvicorn"
+          - "main:app"
+          - "--host"
+          - "0.0.0.0"
+          - "--port"
+          - "8001"
+        ports:
+        - containerPort: 8001
+        env:
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://alloy.monitoring.svc:4317"
+        - name: OTEL_SERVICE_NAME
+          value: "proxy-api"
+        # Since proxy calls dice, use the internal K8s name:
+        - name: FASTAPI_URL
+          value: "http://fatsapi-api:8000/rolldice"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: proxy-api
+  namespace: monitoring
+spec:
+  selector:
+    app: proxy-api
+  ports:
+  - port: 8001
+    targetPort: 8001

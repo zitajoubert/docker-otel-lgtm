@@ -1,0 +1,58 @@
+
+alloy:
+  alloy:
+    configMap:
+      create: true
+      content: |-
+        otelcol.receiver.otlp "default" {
+          grpc { endpoint = "0.0.0.0:4317" }
+          http { endpoint = "0.0.0.0:4318" }
+
+          output {
+            metrics = [otelcol.exporter.prometheus.to_prometheus.input]
+            traces  = [otelcol.exporter.otlp.to_tempo.input]
+            logs    = [otelcol.exporter.loki.to_loki.input] 
+          }
+        }
+
+        otelcol.exporter.loki "to_loki" {
+          forward_to = [loki.write.lgtm.receiver]
+        }
+
+        otelcol.exporter.prometheus "to_prometheus" {
+          forward_to = [prometheus.remote_write.lgtm.receiver]
+        }
+
+        otelcol.exporter.otlp "to_tempo" {
+          client {
+            endpoint = "lgtm.monitoring.svc:4317"
+            tls { insecure = true }
+          }
+        }
+
+        loki.write "lgtm" {
+          endpoint {
+            url = "http://lgtm.monitoring.svc:3100/api/v1/push"
+          }
+        }
+
+        prometheus.scrape "postgres" {
+          targets = [{"__address__" = "postgres-exporter.monitoring.svc:9187"}]
+          forward_to = [prometheus.remote_write.lgtm.receiver]
+        }
+
+        prometheus.remote_write "lgtm" {
+          endpoint {
+            url = "http://lgtm.monitoring.svc:9090/api/v1/write"
+          }
+        }
+
+  extraPorts:
+    - name: "otlp-grpc"
+      port: 4317
+      targetPort: 4317
+      protocol: "TCP"
+    - name: "otlp-http"
+      port: 4318
+      targetPort: 4318
+      protocol: "TCP"

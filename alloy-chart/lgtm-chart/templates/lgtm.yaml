@@ -5,7 +5,7 @@ metadata:
   name: lgtm
 spec:
   selector:
-    app: lgtm
+    app: lgtm-stack
   ports:
     - name: grafana
       protocol: TCP
@@ -27,6 +27,8 @@ spec:
       protocol: TCP
       port: 4318
       targetPort: 4318
+    - name: tempo-query
+      port: 3200     
     - name: prometheus
       protocol: TCP
       port: 9090
@@ -40,11 +42,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: lgtm
+      app: lgtm-stack
   template:
     metadata:
       labels:
-        app: lgtm
+        app: lgtm-stack
     spec:
       containers:
         - name: lgtm

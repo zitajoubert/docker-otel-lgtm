@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: fastapi-api
-  namespace: monitoring # Keeping it in the same namespace makes networking easier
+  namespace: monitoring
 spec:
   replicas: 1
   selector:
@@ -15,29 +15,21 @@ spec:
     spec:
       containers:
       - name: fastapi-api
-        image: fastapi:latest # Ensure you built this with minikube docker-env
-        imagePullPolicy: Never
+        image: fastapi:latest 
+        imagePullPolicy: IfNotPresent 
+        command: ["opentelemetry-instrument"]
+        args: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
         ports:
         - containerPort: 8000
         env:
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
-          value: "http://alloy.monitoring.svc:4317"
+          value: "http://alloy.monitoring.svc:4317" # Point to Alloy
         - name: DATABASE_URL
-          value: "postgresql://user:password@postgres:5432/postgres" # Changed 'db' to 'postgres'
+          value: "postgresql://user:password@postgres:5432/postgres"
         - name: OTEL_SERVICE_NAME
           value: "fastapi-server"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: fastapi-api
-  namespace: monitoring
-spec:
-  selector:
-    app: fastapi-api
-  ports:
-  - port: 8000
-    targetPort: 8000
+        - name: OTEL_LOGS_EXPORTER
+          value: "otlp" # Ensure logs are also sent
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -57,34 +49,17 @@ spec:
       containers:
       - name: proxy-api
         image: proxy-app:latest
-        imagePullPolicy: Never
+        imagePullPolicy: IfNotPresent 
         command: ["opentelemetry-instrument"]
-        args: 
-          - "uvicorn"
-          - "main:app"
-          - "--host"
-          - "0.0.0.0"
-          - "--port"
-          - "8001"
+        args: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]
         ports:
         - containerPort: 8001
         env:
+        - name: OTEL_EXPORTER_OTLP_PROTOCOL
+          value: "grpc"
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
-          value: "http://alloy.monitoring.svc:4317"
+          value: "http://alloy.monitoring.svc:4317" # Point to Alloy
         - name: OTEL_SERVICE_NAME
           value: "proxy-api"
-        # Since proxy calls dice, use the internal K8s name:
         - name: FASTAPI_URL
-          value: "http://fatsapi-api:8000/rolldice"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: proxy-api
-  namespace: monitoring
-spec:
-  selector:
-    app: proxy-api
-  ports:
-  - port: 8001
-    targetPort: 8001
+          value: "http://fastapi-api:8000/rolldice"
